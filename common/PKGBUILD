@@ -1,0 +1,38 @@
+_pkgbase=vala-panel-appmenu
+
+pkgname=${_pkgbase}-common
+pkgver=0.7.6
+pkgrel=1
+pkgdesc="Translations and common files for Global Menu"
+
+arch=('any')
+license=('LGPL3')
+
+_opts=(
+	--prefix=/usr
+	--libdir=lib
+	--libexecdir=lib
+	-Dauto_features=disabled
+)
+
+makedepends=('meson' 'vala' 'gtk3' 'libwnck3' 'bamf>=0.5.0')
+
+source=("git+https://gitlab.com/vala-panel-project/${_pkgbase}.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${srcdir}/${_pkgbase}"
+  ( set -o pipefail
+    git describe --long --tags 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' ||
+    printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  )
+}
+
+build() {
+  meson "${_opts[@]}" build "${srcdir}/${_pkgbase}"
+  meson compile -C build
+}
+
+package() {
+  DESTDIR="${pkgdir}" meson install -C build
+}
